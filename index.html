@@ -2,35 +2,54 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title> Historico - RV </title>
+  <title>Dashboard de RV por Chofer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Fuente Montserrat -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
   <!-- Highcharts -->
   <script src="https://code.highcharts.com/highcharts.js"></script>
   <style>
+    :root {
+      --primary-color: #002060;
+      --secondary-color: #34d399;
+      --accent-color: #ff5722;
+      --background-color: #f4f4f9;
+      --card-bg: #ffffff;
+      --text-color: #333;
+      --font-family: 'Montserrat', sans-serif;
+    }
     /* Regla global */
     * {
       box-sizing: border-box;
     }
-    :root {
-      --primary: #002060;
-      --secondary: #34d399;
-      --accent: #ff5722;
-      --bg: #f4f4f9;
-      --card: #ffffff;
-      --text: #333;
-    }
     body {
-      font-family: 'Montserrat', sans-serif;
-      background: var(--bg);
-      color: var(--text);
+      font-family: var(--font-family);
+      background: var(--background-color);
+      color: var(--text-color);
       margin: 0;
       padding: 20px;
     }
+    /* Botón "Volver al inicio" */
+    .volver-inicio {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+    }
+    .volver-inicio button {
+      padding: 10px 16px;
+      font-size: 14px;
+      background-color: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .volver-inicio button:hover {
+      background-color: var(--secondary-color);
+    }
     h1 {
       text-align: center;
-      color: var(--primary);
+      color: var(--primary-color);
       margin-bottom: 30px;
     }
     /* Dashboard Principal – Grid con áreas */
@@ -44,7 +63,7 @@
       justify-items: stretch;
     }
     .tile {
-      background: var(--card);
+      background: var(--card-bg);
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
@@ -52,21 +71,13 @@
       overflow: hidden;
     }
     /* Asignación de áreas */
-    .adherencia {
-      grid-area: adherencia;
-    }
-    .top10 {
-      grid-area: top10;
-    }
-    .tabla {
-      grid-area: tabla;
-      width: 100%;
-      margin: auto;
-    }
+    .adherencia { grid-area: adherencia; }
+    .top10 { grid-area: top10; }
+    .tabla { grid-area: tabla; width: 100%; margin: auto; }
     .tile h2 {
       margin-top: 0;
       font-size: 1.1em;
-      color: var(--primary);
+      color: var(--primary-color);
     }
     table {
       width: 100%;
@@ -80,12 +91,12 @@
       text-align: center;
     }
     th {
-      background: var(--primary);
+      background: var(--primary-color);
       color: #fff;
     }
     .badge-nok {
       color: #fff;
-      background: var(--accent);
+      background: var(--accent-color);
       padding: 4px 8px;
       border-radius: 5px;
       font-weight: bold;
@@ -95,7 +106,7 @@
       text-align: center;
     }
     .controls button {
-      background-color: var(--primary);
+      background-color: var(--primary-color);
       color: #fff;
       border: none;
       padding: 6px 12px;
@@ -104,7 +115,7 @@
       cursor: pointer;
     }
     .controls button:hover {
-      background-color: var(--secondary);
+      background-color: var(--secondary-color);
     }
     /* Cuadros de búsqueda para las tablas */
     #busquedaChofer, #busquedaNOK {
@@ -114,7 +125,7 @@
       border: 1px solid #ccc;
       border-radius: 5px;
     }
-    /* Se resalta con fondo rojo elegante las celdas donde no se alcanzó el monto mínimo */
+    /* Resaltado de celdas: fondo rojo elegante */
     .cell-below {
       background-color: #f8d7da;
       color: #721c24;
@@ -126,10 +137,18 @@
   </style>
 </head>
 <body>
-  <h1>Historico - RV</h1>
+  <!-- Botón "Volver al inicio" posicionado arriba a la izquierda -->
+  <div class="volver-inicio">
+    <a href="https://fadelt1.github.io/indextotenadm/#">
+      <button>Volver al inicio</button>
+    </a>
+  </div>
+  
+  <h1>Dashboard de RV por Chofer</h1>
+  
   <!-- Dashboard Principal -->
   <div class="dashboard">
-    <!-- Área Adherencia mes a mes -->
+    <!-- Área: Adherencia mes a mes -->
     <div class="tile adherencia">
       <h2>Adherencia mes a mes</h2>
       <div id="chartAdherenciaMensual" style="height:300px;"></div>
@@ -138,13 +157,12 @@
         <button id="btnPolar">Polar</button>
       </div>
     </div>
-    <!-- Área Top 10 choferes (barras horizontales, con rojo más elegante) -->
+    <!-- Área: Top 10 choferes con más NOK -->
     <div class="tile top10">
       <h2>Top 10 choferes con más NOK</h2>
-      <!-- Se usa altura 300px como originalmente -->
       <div id="chartTop10NOK" style="height:300px;"></div>
     </div>
-    <!-- Área Choferes NOK – Último corte cerrado con cuadro de búsqueda -->
+    <!-- Área: Choferes NOK – Último corte cerrado -->
     <div class="tile tabla">
       <h2>Choferes NOK – Último corte cerrado</h2>
       <input type="text" id="busquedaNOK" placeholder="Buscar chofer..." />
@@ -152,7 +170,7 @@
     </div>
   </div>
   
-  <!-- Sección: Histórico General por Chofer con cuadro de búsqueda -->
+  <!-- Sección: Histórico General por Chofer -->
   <div class="historico-general">
     <div class="tile" style="width: 100%;">
       <h2>Histórico General por Chofer</h2>
@@ -163,14 +181,13 @@
   
   <script>
     const targetRV = 585000;
-    // Umbral mínimo para cada mes (para resaltar celdas)
     const MINIMO_MENSUAL = targetRV;
     const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
     
     function obtenerUltimoCorte() {
       const hoy = new Date();
       const dia = hoy.getDate();
-      const mesIndice = hoy.getMonth(); // 0-indexado
+      const mesIndice = hoy.getMonth();
       const anio = hoy.getFullYear();
       if (dia >= 16) {
         return { nombre: meses[mesIndice], anio: anio };
@@ -247,7 +264,6 @@
       });
       document.getElementById("tablaRVNOK").innerHTML = tablaNOK;
       
-      // Filtrado para la tabla de Choferes NOK – Último corte cerrado
       document.getElementById("busquedaNOK").addEventListener("keyup", function() {
         const filter = this.value.toLowerCase();
         const rows = document.querySelectorAll("#tablaRVNOK tr");
@@ -288,7 +304,6 @@
         series: [{
           name: "NOK",
           data: top10.map(e => e[1]),
-          // Se usa un rojo más elegante: #b91c1c
           color: "#b91c1c"
         }]
       });
@@ -393,12 +408,11 @@
       }
       document.getElementById("tablaHistoricoGeneral").innerHTML = tableHist;
       
-      // Función de filtrado para Histórico General por Chofer
       document.getElementById("busquedaChofer").addEventListener("keyup", function() {
         const filter = this.value.toLowerCase();
         const rows = document.querySelectorAll("#tablaHistoricoGeneral tr");
         rows.forEach((row, index) => {
-          if (index === 0) return; // Saltar encabezado
+          if (index === 0) return; // saltar encabezado
           const cell = row.cells[0];
           if (cell) {
             const text = cell.textContent || cell.innerText;
