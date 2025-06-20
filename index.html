@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title> Historico - RV </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Fuente Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+  <!-- Highcharts -->
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <style>
+    /* Regla global */
+    * {
+      box-sizing: border-box;
+    }
+    :root {
+      --primary: #002060;
+      --secondary: #34d399;
+      --accent: #ff5722;
+      --bg: #f4f4f9;
+      --card: #ffffff;
+      --text: #333;
+    }
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: var(--primary);
+      margin-bottom: 30px;
+    }
+    /* Dashboard Principal – Grid con áreas */
+    .dashboard {
+      display: grid;
+      grid-template-areas:
+        "adherencia top10"
+        "tabla tabla";
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+      justify-items: stretch;
+    }
+    .tile {
+      background: var(--card);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      width: 100%;
+      overflow: hidden;
+    }
+    /* Asignación de áreas */
+    .adherencia {
+      grid-area: adherencia;
+    }
+    .top10 {
+      grid-area: top10;
+    }
+    .tabla {
+      grid-area: tabla;
+      width: 100%;
+      margin: auto;
+    }
+    .tile h2 {
+      margin-top: 0;
+      font-size: 1.1em;
+      color: var(--primary);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 8px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    th {
+      background: var(--primary);
+      color: #fff;
+    }
+    .badge-nok {
+      color: #fff;
+      background: var(--accent);
+      padding: 4px 8px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .controls {
+      margin-top: 10px;
+      text-align: center;
+    }
+    .controls button {
+      background-color: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 6px 12px;
+      margin: 0 6px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .controls button:hover {
+      background-color: var(--secondary);
+    }
+    /* Cuadros de búsqueda para las tablas */
+    #busquedaChofer, #busquedaNOK {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    /* Se resalta con fondo rojo elegante las celdas donde no se alcanzó el monto mínimo */
+    .cell-below {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    /* Sección: Histórico General por Chofer */
+    .historico-general {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Historico - RV</h1>
+  <!-- Dashboard Principal -->
+  <div class="dashboard">
+    <!-- Área Adherencia mes a mes -->
+    <div class="tile adherencia">
+      <h2>Adherencia mes a mes</h2>
+      <div id="chartAdherenciaMensual" style="height:300px;"></div>
+      <div class="controls">
+        <button id="btnInvertido">Invertir</button>
+        <button id="btnPolar">Polar</button>
+      </div>
+    </div>
+    <!-- Área Top 10 choferes (barras horizontales, con rojo más elegante) -->
+    <div class="tile top10">
+      <h2>Top 10 choferes con más NOK</h2>
+      <!-- Se usa altura 300px como originalmente -->
+      <div id="chartTop10NOK" style="height:300px;"></div>
+    </div>
+    <!-- Área Choferes NOK – Último corte cerrado con cuadro de búsqueda -->
+    <div class="tile tabla">
+      <h2>Choferes NOK – Último corte cerrado</h2>
+      <input type="text" id="busquedaNOK" placeholder="Buscar chofer..." />
+      <table id="tablaRVNOK"></table>
+    </div>
+  </div>
+  
+  <!-- Sección: Histórico General por Chofer con cuadro de búsqueda -->
+  <div class="historico-general">
+    <div class="tile" style="width: 100%;">
+      <h2>Histórico General por Chofer</h2>
+      <input type="text" id="busquedaChofer" placeholder="Buscar chofer..." />
+      <table id="tablaHistoricoGeneral"></table>
+    </div>
+  </div>
+  
+  <script>
+    const targetRV = 585000;
+    // Umbral mínimo para cada mes (para resaltar celdas)
+    const MINIMO_MENSUAL = targetRV;
+    const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+    
+    function obtenerUltimoCorte() {
+      const hoy = new Date();
+      const dia = hoy.getDate();
+      const mesIndice = hoy.getMonth(); // 0-indexado
+      const anio = hoy.getFullYear();
+      if (dia >= 16) {
+        return { nombre: meses[mesIndice], anio: anio };
+      } else {
+        const mesPrev = (mesIndice - 1 + 12) % 12;
+        const anioPrev = mesIndice === 0 ? anio - 1 : anio;
+        return { nombre: meses[mesPrev], anio: anioPrev };
+      }
+    }
+    
+    async function fetchData(url) {
+      const res = await fetch(url);
+      const json = await res.json();
+      return Object.values(json);
+    }
+    
+    async function cargarDashboard() {
+      const historico = await fetchData("https://historicototen-default-rtdb.firebaseio.com/.json");
+      const actual = await fetchData("https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json");
+      
+      const corteCerrado = obtenerUltimoCorte().nombre;
+      
+      // 1. Choferes NOK – Último corte cerrado
+      const nokCierre = historico.filter(r => {
+        return ((r["PERIODO"] || "").toUpperCase().trim() === corteCerrado) &&
+               ((r["STATUS RV "] || "").toUpperCase().trim() !== "OK");
+      });
+      
+      const agrupadoHistorico = {};
+      nokCierre.forEach(r => {
+        const chofer = r["CHOFER"];
+        const rv_val = parseFloat(r["TT RV"]) || 0;
+        const obs = r["OBSERVACION"] || "";
+        if (!agrupadoHistorico[chofer]) {
+          agrupadoHistorico[chofer] = { rvCerrado: 0, observacion: obs };
+        }
+        agrupadoHistorico[chofer].rvCerrado += rv_val;
+      });
+      const listaNOK = Object.entries(agrupadoHistorico).map(([chofer, data]) => ({
+        chofer,
+        rvCerrado: data.rvCerrado,
+        observacion: data.observacion
+      }));
+      
+      const agrupadoActual = {};
+      actual.forEach(r => {
+        const chofer = r["MOTORISTA 1"];
+        const rv = parseFloat(r["RV GENERAL"]) || 0;
+        if (!agrupadoActual[chofer]) {
+          agrupadoActual[chofer] = 0;
+        }
+        agrupadoActual[chofer] += rv;
+      });
+      
+      let tablaNOK = `<tr>
+                        <th>Chofer</th>
+                        <th>RV Corte Cerrado</th>
+                        <th>Diferencia</th>
+                        <th>Observación</th>
+                        <th>RV Actual (Corte Abierto)</th>
+                        <th>Estado</th>
+                      </tr>`;
+      listaNOK.forEach(r => {
+        const diff = targetRV - r.rvCerrado;
+        const rvActual = agrupadoActual[r.chofer] || 0;
+        tablaNOK += `<tr>
+                      <td>${r.chofer}</td>
+                      <td>₲ ${r.rvCerrado.toLocaleString()}</td>
+                      <td>₲ ${diff.toLocaleString()}</td>
+                      <td>${r.observacion}</td>
+                      <td>₲ ${rvActual.toLocaleString()}</td>
+                      <td><span class="badge-nok">NOK</span></td>
+                    </tr>`;
+      });
+      document.getElementById("tablaRVNOK").innerHTML = tablaNOK;
+      
+      // Filtrado para la tabla de Choferes NOK – Último corte cerrado
+      document.getElementById("busquedaNOK").addEventListener("keyup", function() {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll("#tablaRVNOK tr");
+        rows.forEach((row, index) => {
+          if (index === 0) return; // omitir encabezado
+          const cell = row.cells[0];
+          if (cell) {
+            const text = cell.textContent || cell.innerText;
+            row.style.display = text.toLowerCase().indexOf(filter) > -1 ? "" : "none";
+          }
+        });
+      });
+      
+      // 2. Top 10 choferes con mayor incidencia de NOK
+      const cuentaNOK = {};
+      historico.forEach(r => {
+        const chofer = r["CHOFER"];
+        if ((r["STATUS RV "] || "").toUpperCase().trim() === "NOK") {
+          cuentaNOK[chofer] = (cuentaNOK[chofer] || 0) + 1;
+        }
+      });
+      const top10 = Object.entries(cuentaNOK)
+                         .sort((a, b) => b[1] - a[1])
+                         .slice(0, 10);
+      Highcharts.chart("chartTop10NOK", {
+        chart: { type: "bar" },
+        title: { text: "" },
+        xAxis: { categories: top10.map(e => e[0]) },
+        yAxis: { min: 0, title: { text: "Meses con NOK" } },
+        plotOptions: {
+          bar: {
+            dataLabels: {
+              enabled: true,
+              format: "{y}"
+            }
+          }
+        },
+        series: [{
+          name: "NOK",
+          data: top10.map(e => e[1]),
+          // Se usa un rojo más elegante: #b91c1c
+          color: "#b91c1c"
+        }]
+      });
+      
+      // 3. Adherencia mes a mes – gráfico interactivo con columna ACUMULADO
+      const resumen = {};
+      let totalOK = 0, totalRegistros = 0;
+      historico.forEach(r => {
+        const mesKey = (r["PERIODO"] || "").toUpperCase().trim();
+        const status = (r["STATUS RV "] || "").toUpperCase().trim();
+        if (!mesKey) return;
+        if (!resumen[mesKey]) resumen[mesKey] = { total: 0, ok: 0 };
+        resumen[mesKey].total++;
+        if (status === "OK") {
+          resumen[mesKey].ok++;
+        }
+        totalRegistros++;
+        if (status === "OK") totalOK++;
+      });
+      
+      const categoriasGraf = [];
+      const adherencias = [];
+      meses.forEach(m => {
+        if (resumen[m]) {
+          categoriasGraf.push(m);
+          const porcentaje = (resumen[m].ok / resumen[m].total) * 100;
+          adherencias.push(parseFloat(porcentaje.toFixed(1)));
+        }
+      });
+      const acumulado = totalRegistros ? ((totalOK / totalRegistros) * 100).toFixed(1) : '0.0';
+      categoriasGraf.push("ACUMULADO");
+      adherencias.push(parseFloat(acumulado));
+      
+      Highcharts.chart("chartAdherenciaMensual", {
+        chart: { type: "column" },
+        title: { text: "" },
+        xAxis: { categories: categoriasGraf },
+        yAxis: { max: 100, title: { text: "Adherencia (%)" } },
+        plotOptions: {
+          column: {
+            dataLabels: {
+              enabled: true,
+              format: "{y}%",
+              style: { fontWeight: "bold", color: "#333" }
+            }
+          }
+        },
+        series: [{
+          name: "Adherencia",
+          data: adherencias.map((y, i) => ({
+            y: y,
+            color: categoriasGraf[i] === "ACUMULADO" ? "#6366f1" : "#34d399"
+          }))
+        }]
+      });
+      
+      document.getElementById("btnInvertido").onclick = () => {
+        const chart = Highcharts.charts.find(c => c.renderTo.id === "chartAdherenciaMensual");
+        chart.update({ chart: { inverted: !chart.options.chart.inverted } });
+      };
+      
+      document.getElementById("btnPolar").onclick = () => {
+        const chart = Highcharts.charts.find(c => c.renderTo.id === "chartAdherenciaMensual");
+        chart.update({ chart: { polar: !chart.options.chart.polar } });
+      };
+      
+      // 4. HISTÓRICO GENERAL POR CHOFER
+      const historicoGeneral = {};
+      historico.forEach(r => {
+        const chofer = r["CHOFER"];
+        const mes = (r["PERIODO"] || "").toUpperCase().trim();
+        const rv_val = parseFloat(r["TT RV"]) || 0;
+        if (!chofer) return;
+        if (!historicoGeneral[chofer]) {
+          historicoGeneral[chofer] = {};
+          meses.forEach(mName => {
+            historicoGeneral[chofer][mName] = 0;
+          });
+        }
+        if (historicoGeneral[chofer][mes] === undefined) {
+          historicoGeneral[chofer][mes] = 0;
+        }
+        historicoGeneral[chofer][mes] += rv_val;
+      });
+      
+      let tableHist = `<tr><th>Chofer</th>`;
+      meses.forEach(m => {
+        tableHist += `<th>${m}</th>`;
+      });
+      tableHist += `<th>ACUMULADO</th></tr>`;
+      
+      for (const chofer in historicoGeneral) {
+        let total = 0;
+        tableHist += `<tr><td>${chofer}</td>`;
+        meses.forEach(m => {
+          const value = historicoGeneral[chofer][m] || 0;
+          total += value;
+          const cellClass = value < MINIMO_MENSUAL ? "cell-below" : "";
+          tableHist += `<td class="${cellClass}">₲ ${value.toLocaleString()}</td>`;
+        });
+        tableHist += `<td>₲ ${total.toLocaleString()}</td></tr>`;
+      }
+      document.getElementById("tablaHistoricoGeneral").innerHTML = tableHist;
+      
+      // Función de filtrado para Histórico General por Chofer
+      document.getElementById("busquedaChofer").addEventListener("keyup", function() {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll("#tablaHistoricoGeneral tr");
+        rows.forEach((row, index) => {
+          if (index === 0) return; // Saltar encabezado
+          const cell = row.cells[0];
+          if (cell) {
+            const text = cell.textContent || cell.innerText;
+            row.style.display = text.toLowerCase().indexOf(filter) > -1 ? "" : "none";
+          }
+        });
+      });
+    }
+    
+    cargarDashboard();
+  </script>
+</body>
+</html>
