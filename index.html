@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Historico - RV</title>
+  <title>Dashboard de RV por Chofer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Fuente Montserrat -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
@@ -18,41 +18,31 @@
       --text-color: #333;
       --font-family: 'Montserrat', sans-serif;
     }
-    /* Regla global */
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       font-family: var(--font-family);
       background: var(--background-color);
       color: var(--text-color);
-      margin: 0;
-      padding: 20px;
+      margin: 0; padding: 20px;
     }
     /* Botón "Volver al inicio" */
     .volver-inicio {
-      position: absolute;
-      top: 20px;
-      left: 20px;
+      position: absolute; top: 20px; left: 20px;
     }
     .volver-inicio button {
-      padding: 10px 16px;
-      font-size: 14px;
+      padding: 10px 16px; font-size: 14px;
       background-color: var(--primary-color);
-      color: #fff;
-      border: none;
-      border-radius: 4px;
+      color: #fff; border: none; border-radius: 4px;
       cursor: pointer;
     }
     .volver-inicio button:hover {
       background-color: var(--secondary-color);
     }
     h1 {
-      text-align: center;
-      color: var(--primary-color);
+      text-align: center; color: var(--primary-color);
       margin-bottom: 30px;
     }
-    /* Dashboard Principal – Grid con áreas */
+    /* Grid principal */
     .dashboard {
       display: grid;
       grid-template-areas:
@@ -60,34 +50,26 @@
         "tabla tabla";
       grid-template-columns: 2fr 1fr;
       gap: 20px;
-      justify-items: stretch;
     }
     .tile {
       background: var(--card-bg);
-      padding: 20px;
-      border-radius: 8px;
+      padding: 20px; border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      width: 100%;
       overflow: hidden;
     }
-    /* Asignación de áreas */
     .adherencia { grid-area: adherencia; }
-    .top10 { grid-area: top10; }
-    .tabla { grid-area: tabla; width: 100%; margin: auto; }
+    .top10      { grid-area: top10; }
+    .tabla      { grid-area: tabla; }
     .tile h2 {
-      margin-top: 0;
-      font-size: 1.1em;
+      margin-top: 0; font-size: 1.1em;
       color: var(--primary-color);
     }
     table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
+      width: 100%; border-collapse: collapse;
+      margin-top: 10px; font-size: 14px;
     }
     th, td {
-      padding: 8px;
-      border: 1px solid #ccc;
+      padding: 8px; border: 1px solid #ccc;
       text-align: center;
     }
     th {
@@ -95,60 +77,57 @@
       color: #fff;
     }
     .badge-nok {
-      color: #fff;
       background: var(--accent-color);
-      padding: 4px 8px;
-      border-radius: 5px;
-      font-weight: bold;
+      color: #fff; padding: 4px 8px;
+      border-radius: 5px; font-weight: bold;
+      display: inline-block;
+    }
+    .badge-ok {
+      background: var(--secondary-color);
+      color: #fff; padding: 4px 8px;
+      border-radius: 5px; font-weight: bold;
+      display: inline-block;
     }
     .controls {
-      margin-top: 10px;
-      text-align: center;
+      margin-top: 10px; text-align: center;
     }
     .controls button {
       background-color: var(--primary-color);
-      color: #fff;
-      border: none;
-      padding: 6px 12px;
-      margin: 0 6px;
-      border-radius: 5px;
-      cursor: pointer;
+      color: #fff; border: none;
+      padding: 6px 12px; margin: 0 6px;
+      border-radius: 5px; cursor: pointer;
     }
     .controls button:hover {
       background-color: var(--secondary-color);
     }
-    /* Cuadros de búsqueda para las tablas */
-    #busquedaChofer, #busquedaNOK {
-      width: 100%;
-      padding: 8px;
+    /* Búsquedas y filtro */
+    #busquedaNOK, #filtroStatusActual,
+    #busquedaChofer {
+      width: 100%; padding: 8px;
       margin-bottom: 10px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
+      border: 1px solid #ccc; border-radius: 5px;
     }
-    /* Resaltado de celdas: fondo rojo elegante */
+    /* Resaltado de celdas por debajo del mínimo */
     .cell-below {
       background-color: #f8d7da;
       color: #721c24;
     }
-    /* Sección: Histórico General por Chofer */
     .historico-general {
       margin-top: 40px;
     }
   </style>
 </head>
 <body>
-  <!-- Botón "Volver al inicio" posicionado arriba a la izquierda -->
+
+  <!-- Botón fijo "Volver al inicio" -->
   <div class="volver-inicio">
-    <a href="https://fadelt1.github.io/indextotenadm/#">
-      <button>Volver al inicio</button>
-    </a>
+    <a href="TU_ENLACE_AQUI"><button>⬅ Volver al inicio</button></a>
   </div>
-  
-  <h1>Historico - RV</h1>
-  
-  <!-- Dashboard Principal -->
+
+  <h1>Dashboard de RV por Chofer</h1>
+
   <div class="dashboard">
-    <!-- Área: Adherencia mes a mes -->
+    <!-- Adherencia mes a mes -->
     <div class="tile adherencia">
       <h2>Adherencia mes a mes</h2>
       <div id="chartAdherenciaMensual" style="height:300px;"></div>
@@ -157,271 +136,206 @@
         <button id="btnPolar">Polar</button>
       </div>
     </div>
-    <!-- Área: Top 10 choferes con más NOK -->
+
+    <!-- Top 10 choferes con más NOK -->
     <div class="tile top10">
       <h2>Top 10 choferes con más NOK</h2>
       <div id="chartTop10NOK" style="height:300px;"></div>
     </div>
-    <!-- Área: Choferes NOK – Último corte cerrado -->
+
+    <!-- Choferes NOK – Último corte cerrado -->
     <div class="tile tabla">
       <h2>Choferes NOK – Último corte cerrado</h2>
+
       <input type="text" id="busquedaNOK" placeholder="Buscar chofer..." />
+      <select id="filtroStatusActual">
+        <option value="TODOS">Filtrar por status actual: TODOS</option>
+        <option value="OK">OK</option>
+        <option value="NOK">NOK</option>
+      </select>
+
       <table id="tablaRVNOK"></table>
     </div>
   </div>
-  
-  <!-- Sección: Histórico General por Chofer -->
+
+  <!-- Histórico General por Chofer -->
   <div class="historico-general">
-    <div class="tile" style="width: 100%;">
+    <div class="tile">
       <h2>Histórico General por Chofer</h2>
       <input type="text" id="busquedaChofer" placeholder="Buscar chofer..." />
       <table id="tablaHistoricoGeneral"></table>
     </div>
   </div>
-  
+
   <script>
     const targetRV = 585000;
-    const MINIMO_MENSUAL = targetRV;
-    const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
-    
+    const meses = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO",
+                   "JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+
     function obtenerUltimoCorte() {
-      const hoy = new Date();
-      const dia = hoy.getDate();
-      const mesIndice = hoy.getMonth();
-      const anio = hoy.getFullYear();
-      if (dia >= 16) {
-        return { nombre: meses[mesIndice], anio: anio };
-      } else {
-        const mesPrev = (mesIndice - 1 + 12) % 12;
-        const anioPrev = mesIndice === 0 ? anio - 1 : anio;
-        return { nombre: meses[mesPrev], anio: anioPrev };
-      }
+      const hoy = new Date(), d = hoy.getDate(),
+            mi = hoy.getMonth(), y = hoy.getFullYear();
+      if (d >= 16) return {nombre: meses[mi], anio: y};
+      const pm = (mi-1+12)%12, py = mi===0? y-1 : y;
+      return {nombre: meses[pm], anio: py};
     }
-    
+
     async function fetchData(url) {
       const res = await fetch(url);
-      const json = await res.json();
-      return Object.values(json);
+      return Object.values(await res.json());
     }
-    
+
+    function filterTablaNOK() {
+      const nameF = document.getElementById("busquedaNOK").value.toLowerCase();
+      const statusF = document.getElementById("filtroStatusActual").value;
+      document.querySelectorAll("#tablaRVNOK tr").forEach((row,i)=>{
+        if(i===0) return;
+        const name = row.cells[0].innerText.toLowerCase();
+        const status = row.cells[5].innerText;
+        row.style.display = 
+          name.includes(nameF) && (statusF==="TODOS"|| status===statusF)
+          ? "" : "none";
+      });
+    }
+
     async function cargarDashboard() {
       const historico = await fetchData("https://historicototen-default-rtdb.firebaseio.com/.json");
-      const actual = await fetchData("https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json");
-      
-      const corteCerrado = obtenerUltimoCorte().nombre;
-      
+      const actual    = await fetchData("https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json");
+      const corte     = obtenerUltimoCorte().nombre;
+
       // 1. Choferes NOK – Último corte cerrado
-      const nokCierre = historico.filter(r => {
-        return ((r["PERIODO"] || "").toUpperCase().trim() === corteCerrado) &&
-               ((r["STATUS RV "] || "").toUpperCase().trim() !== "OK");
+      const nokCierre = historico.filter(r=>
+        (r["PERIODO"]||"").toUpperCase().trim()===corte &&
+        (r["STATUS RV "]||"").toUpperCase().trim()!=="OK"
+      );
+      const agg1 = {};
+      nokCierre.forEach(r=>{
+        const c=r["CHOFER"], v=parseFloat(r["TT RV"])||0,
+              o=r["OBSERVACION"]||"";
+        agg1[c] = agg1[c]||{rvC:0, obs:o};
+        agg1[c].rvC += v;
       });
-      
-      const agrupadoHistorico = {};
-      nokCierre.forEach(r => {
-        const chofer = r["CHOFER"];
-        const rv_val = parseFloat(r["TT RV"]) || 0;
-        const obs = r["OBSERVACION"] || "";
-        if (!agrupadoHistorico[chofer]) {
-          agrupadoHistorico[chofer] = { rvCerrado: 0, observacion: obs };
-        }
-        agrupadoHistorico[chofer].rvCerrado += rv_val;
-      });
-      const listaNOK = Object.entries(agrupadoHistorico).map(([chofer, data]) => ({
-        chofer,
-        rvCerrado: data.rvCerrado,
-        observacion: data.observacion
+      const listaNOK = Object.entries(agg1).map(([c,d])=>({
+        chofer:c, rvCerrado:d.rvC, obs:d.obs
       }));
-      
-      const agrupadoActual = {};
-      actual.forEach(r => {
-        const chofer = r["MOTORISTA 1"];
-        const rv = parseFloat(r["RV GENERAL"]) || 0;
-        if (!agrupadoActual[chofer]) {
-          agrupadoActual[chofer] = 0;
-        }
-        agrupadoActual[chofer] += rv;
+
+      // 2. RV actual por chofer
+      const agg2 = {};
+      actual.forEach(r=>{
+        const c=r["MOTORISTA 1"], v=parseFloat(r["RV GENERAL"])||0;
+        agg2[c] = (agg2[c]||0) + v;
       });
-      
-      let tablaNOK = `<tr>
-                        <th>Chofer</th>
-                        <th>RV Corte Cerrado</th>
-                        <th>Diferencia</th>
-                        <th>Observación</th>
-                        <th>RV Actual (Corte Abierto)</th>
-                        <th>Estado</th>
-                      </tr>`;
-      listaNOK.forEach(r => {
+
+      // Construir tabla NOK
+      let th = `<tr>
+        <th>Chofer</th><th>RV Corte Cerrado</th><th>Diferencia</th>
+        <th>Observación</th><th>RV Actual (Corte Abierto)</th>
+        <th>Status Corte Actual</th><th>Estado</th>
+      </tr>`;
+      listaNOK.forEach(r=>{
         const diff = targetRV - r.rvCerrado;
-        const rvActual = agrupadoActual[r.chofer] || 0;
-        tablaNOK += `<tr>
-                      <td>${r.chofer}</td>
-                      <td>₲ ${r.rvCerrado.toLocaleString()}</td>
-                      <td>₲ ${diff.toLocaleString()}</td>
-                      <td>${r.observacion}</td>
-                      <td>₲ ${rvActual.toLocaleString()}</td>
-                      <td><span class="badge-nok">NOK</span></td>
-                    </tr>`;
+        const rvA = agg2[r.chofer]||0;
+        const st  = rvA>=targetRV? "OK":"NOK";
+        const bd  = st==="OK"? `<span class="badge-ok">OK</span>`
+                            : `<span class="badge-nok">NOK</span>`;
+        th += `<tr>
+          <td>${r.chofer}</td>
+          <td>₲ ${r.rvCerrado.toLocaleString()}</td>
+          <td>₲ ${diff.toLocaleString()}</td>
+          <td>${r.obs}</td>
+          <td>₲ ${rvA.toLocaleString()}</td>
+          <td>${bd}</td>
+          <td><span class="badge-nok">NOK</span></td>
+        </tr>`;
       });
-      document.getElementById("tablaRVNOK").innerHTML = tablaNOK;
-      
-      document.getElementById("busquedaNOK").addEventListener("keyup", function() {
-        const filter = this.value.toLowerCase();
-        const rows = document.querySelectorAll("#tablaRVNOK tr");
-        rows.forEach((row, index) => {
-          if (index === 0) return; // omitir encabezado
-          const cell = row.cells[0];
-          if (cell) {
-            const text = cell.textContent || cell.innerText;
-            row.style.display = text.toLowerCase().indexOf(filter) > -1 ? "" : "none";
-          }
-        });
+      document.getElementById("tablaRVNOK").innerHTML = th;
+
+      // Eventos de filtro
+      document.getElementById("busquedaNOK")
+        .addEventListener("keyup", filterTablaNOK);
+      document.getElementById("filtroStatusActual")
+        .addEventListener("change", filterTablaNOK);
+
+      // 3. Top 10 NOK
+      const cuenta = {};
+      historico.forEach(r=>{
+        const c=r["CHOFER"];
+        if ((r["STATUS RV "]||"").toUpperCase().trim()==="NOK")
+          cuenta[c] = (cuenta[c]||0)+1;
       });
-      
-      // 2. Top 10 choferes con mayor incidencia de NOK
-      const cuentaNOK = {};
-      historico.forEach(r => {
-        const chofer = r["CHOFER"];
-        if ((r["STATUS RV "] || "").toUpperCase().trim() === "NOK") {
-          cuentaNOK[chofer] = (cuentaNOK[chofer] || 0) + 1;
-        }
-      });
-      const top10 = Object.entries(cuentaNOK)
-                         .sort((a, b) => b[1] - a[1])
-                         .slice(0, 10);
+      const top10 = Object.entries(cuenta)
+        .sort((a,b)=>b[1]-a[1]).slice(0,10);
       Highcharts.chart("chartTop10NOK", {
-        chart: { type: "bar" },
-        title: { text: "" },
-        xAxis: { categories: top10.map(e => e[0]) },
-        yAxis: { min: 0, title: { text: "Meses con NOK" } },
-        plotOptions: {
-          bar: {
-            dataLabels: {
-              enabled: true,
-              format: "{y}"
-            }
-          }
-        },
-        series: [{
-          name: "NOK",
-          data: top10.map(e => e[1]),
-          color: "#b91c1c"
-        }]
+        chart:{type:"bar"}, title:{text:""},
+        xAxis:{categories: top10.map(e=>e[0])},
+        yAxis:{min:0,title:{text:"Meses con NOK"}},
+        plotOptions:{bar:{dataLabels:{enabled:true,format:"{y}"}}},
+        series:[{name:"NOK", data: top10.map(e=>e[1]), color:"#b91c1c"}]
       });
-      
-      // 3. Adherencia mes a mes – gráfico interactivo con columna ACUMULADO
-      const resumen = {};
-      let totalOK = 0, totalRegistros = 0;
-      historico.forEach(r => {
-        const mesKey = (r["PERIODO"] || "").toUpperCase().trim();
-        const status = (r["STATUS RV "] || "").toUpperCase().trim();
-        if (!mesKey) return;
-        if (!resumen[mesKey]) resumen[mesKey] = { total: 0, ok: 0 };
-        resumen[mesKey].total++;
-        if (status === "OK") {
-          resumen[mesKey].ok++;
-        }
-        totalRegistros++;
-        if (status === "OK") totalOK++;
+
+      // 4. Adherencia mes a mes
+      const resu={}, totals={ok:0,n:0};
+      historico.forEach(r=>{
+        const m=(r["PERIODO"]||"").toUpperCase().trim();
+        const s=(r["STATUS RV "]||"").toUpperCase().trim();
+        if(!m) return;
+        resu[m] = resu[m]||{t:0,ok:0};
+        resu[m].t++;
+        if(s==="OK") resu[m].ok++;
+        totals.n++;
+        if(s==="OK") totals.ok++;
       });
-      
-      const categoriasGraf = [];
-      const adherencias = [];
-      meses.forEach(m => {
-        if (resumen[m]) {
-          categoriasGraf.push(m);
-          const porcentaje = (resumen[m].ok / resumen[m].total) * 100;
-          adherencias.push(parseFloat(porcentaje.toFixed(1)));
+      const cats=[], data=[];
+      meses.forEach(m=>{
+        if(resu[m]) {
+          cats.push(m);
+          data.push(parseFloat(((resu[m].ok/resu[m].t)*100).toFixed(1)));
         }
       });
-      const acumulado = totalRegistros ? ((totalOK / totalRegistros) * 100).toFixed(1) : '0.0';
-      categoriasGraf.push("ACUMULADO");
-      adherencias.push(parseFloat(acumulado));
-      
+      cats.push("ACUMULADO");
+      data.push(parseFloat(((totals.ok/totals.n)*100).toFixed(1)));
+
       Highcharts.chart("chartAdherenciaMensual", {
-        chart: { type: "column" },
-        title: { text: "" },
-        xAxis: { categories: categoriasGraf },
-        yAxis: { max: 100, title: { text: "Adherencia (%)" } },
-        plotOptions: {
-          column: {
-            dataLabels: {
-              enabled: true,
-              format: "{y}%",
-              style: { fontWeight: "bold", color: "#333" }
-            }
-          }
-        },
-        series: [{
-          name: "Adherencia",
-          data: adherencias.map((y, i) => ({
-            y: y,
-            color: categoriasGraf[i] === "ACUMULADO" ? "#6366f1" : "#34d399"
-          }))
-        }]
+        chart:{type:"column"}, title:{text:""},
+        xAxis:{categories:cats}, yAxis:{max:100,title:{text:"Adherencia (%)"}},
+        plotOptions:{column:{dataLabels:{enabled:true,format:"{y}%",style:{fontWeight:"bold",color:"#333"}}}},
+        series:[{name:"Adherencia",data: data.map((y,i)=>({
+          y, color: cats[i]==="ACUMULADO"? "#6366f1":"#34d399"
+        }))}]
       });
-      
-      document.getElementById("btnInvertido").onclick = () => {
-        const chart = Highcharts.charts.find(c => c.renderTo.id === "chartAdherenciaMensual");
-        chart.update({ chart: { inverted: !chart.options.chart.inverted } });
-      };
-      
-      document.getElementById("btnPolar").onclick = () => {
-        const chart = Highcharts.charts.find(c => c.renderTo.id === "chartAdherenciaMensual");
-        chart.update({ chart: { polar: !chart.options.chart.polar } });
-      };
-      
-      // 4. HISTÓRICO GENERAL POR CHOFER
-      const historicoGeneral = {};
-      historico.forEach(r => {
-        const chofer = r["CHOFER"];
-        const mes = (r["PERIODO"] || "").toUpperCase().trim();
-        const rv_val = parseFloat(r["TT RV"]) || 0;
-        if (!chofer) return;
-        if (!historicoGeneral[chofer]) {
-          historicoGeneral[chofer] = {};
-          meses.forEach(mName => {
-            historicoGeneral[chofer][mName] = 0;
-          });
-        }
-        if (historicoGeneral[chofer][mes] === undefined) {
-          historicoGeneral[chofer][mes] = 0;
-        }
-        historicoGeneral[chofer][mes] += rv_val;
+
+      // 5. Histórico General por Chofer
+      const hg = {};
+      historico.forEach(r=>{
+        const c=r["CHOFER"], m=(r["PERIODO"]||"").toUpperCase().trim();
+        const v=parseFloat(r["TT RV"])||0;
+        if(!c) return;
+        hg[c] = hg[c]||Object.fromEntries(meses.map(x=>[x,0]));
+        hg[c][m] = (hg[c][m]||0)+v;
       });
-      
-      let tableHist = `<tr><th>Chofer</th>`;
-      meses.forEach(m => {
-        tableHist += `<th>${m}</th>`;
-      });
-      tableHist += `<th>ACUMULADO</th></tr>`;
-      
-      for (const chofer in historicoGeneral) {
-        let total = 0;
-        tableHist += `<tr><td>${chofer}</td>`;
-        meses.forEach(m => {
-          const value = historicoGeneral[chofer][m] || 0;
-          total += value;
-          const cellClass = value < MINIMO_MENSUAL ? "cell-below" : "";
-          tableHist += `<td class="${cellClass}">₲ ${value.toLocaleString()}</td>`;
+      let th2 = `<tr><th>Chofer</th>${meses.map(m=>`<th>${m}</th>`).join("")}<th>ACUMULADO</th></tr>`;
+      Object.entries(hg).forEach(([c,mesesObj])=>{
+        let total=0;
+        th2 += `<tr><td>${c}</td>`;
+        meses.forEach(m=>{
+          const v = mesesObj[m]||0; total+=v;
+          const cls = v<targetRV? "cell-below": "";
+          th2 += `<td class="${cls}">₲ ${v.toLocaleString()}</td>`;
         });
-        tableHist += `<td>₲ ${total.toLocaleString()}</td></tr>`;
-      }
-      document.getElementById("tablaHistoricoGeneral").innerHTML = tableHist;
-      
-      document.getElementById("busquedaChofer").addEventListener("keyup", function() {
-        const filter = this.value.toLowerCase();
-        const rows = document.querySelectorAll("#tablaHistoricoGeneral tr");
-        rows.forEach((row, index) => {
-          if (index === 0) return; // saltar encabezado
-          const cell = row.cells[0];
-          if (cell) {
-            const text = cell.textContent || cell.innerText;
-            row.style.display = text.toLowerCase().indexOf(filter) > -1 ? "" : "none";
-          }
-        });
+        th2 += `<td>₲ ${total.toLocaleString()}</td></tr>`;
       });
+      document.getElementById("tablaHistoricoGeneral").innerHTML = th2;
+      document.getElementById("busquedaChofer")
+        .addEventListener("keyup", e=>{
+          const f=e.target.value.toLowerCase();
+          document.querySelectorAll("#tablaHistoricoGeneral tr")
+            .forEach((row,i)=> {
+              if(i===0) return;
+              row.style.display = row.cells[0].innerText.toLowerCase().includes(f) ? "" : "none";
+            });
+        });
     }
-    
+
     cargarDashboard();
   </script>
 </body>
