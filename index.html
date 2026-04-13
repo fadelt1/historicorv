@@ -4,339 +4,464 @@
   <meta charset="UTF-8" />
   <title>Dashboard de RV por Chofer</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Fuente Montserrat -->
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
-  <!-- Highcharts -->
-  <script src="https://code.highcharts.com/highcharts.js"></script>
   <style>
     :root {
-      --primary-color: #002060;
-      --secondary-color: #34d399;
-      --accent-color: #ff5722;
-      --background-color: #f4f4f9;
-      --card-bg: #ffffff;
-      --text-color: #333;
-      --font-family: 'Montserrat', sans-serif;
+      --primary: #002060;
+      --green: #34d399;
+      --red: #ff5722;
+      --bg: #f4f4f9;
+      --card: #ffffff;
+      --text: #333;
+      --font: 'Montserrat', sans-serif;
     }
     * { box-sizing: border-box; }
-    body {
-      font-family: var(--font-family);
-      background: var(--background-color);
-      color: var(--text-color);
-      margin: 0; padding: 20px;
-    }
-    /* Botón "Volver al inicio" */
-    .volver-inicio {
-      position: absolute; top: 20px; left: 20px;
-    }
-    .volver-inicio button {
-      padding: 10px 16px; font-size: 14px;
-      background-color: var(--primary-color);
-      color: #fff; border: none; border-radius: 4px;
-      cursor: pointer;
-    }
-    .volver-inicio button:hover {
-      background-color: var(--secondary-color);
-    }
-    h1 {
-      text-align: center; color: var(--primary-color);
-      margin-bottom: 30px;
-    }
-    /* Grid principal */
-    .dashboard {
-      display: grid;
-      grid-template-areas:
-        "adherencia top10"
-        "tabla tabla";
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-    }
-    .tile {
-      background: var(--card-bg);
-      padding: 20px; border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      overflow: hidden;
-    }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+    .volver { position: absolute; top: 20px; left: 20px; }
+    .volver button { padding: 10px 16px; font-size: 14px; background: var(--primary); color: #fff; border: none; border-radius: 4px; cursor: pointer; font-family: var(--font); }
+    .volver button:hover { background: var(--green); }
+    h1 { text-align: center; color: var(--primary); margin-bottom: 10px; padding-top: 10px; }
+
+    .filtro-bar { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .filtro-bar label { font-size: 14px; font-weight: 600; color: var(--primary); }
+    .filtro-bar select { padding: 7px 14px; border: 1px solid #ccc; border-radius: 4px; font-family: var(--font); font-size: 14px; cursor: pointer; }
+    .badge-corte { background: var(--primary); color: #fff; padding: 5px 14px; border-radius: 4px; font-size: 13px; font-weight: 600; }
+
+    .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .kpi-card { background: var(--card); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 18px 20px; text-align: center; }
+    .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #777; margin-bottom: 6px; }
+    .kpi-value { font-size: 1.8rem; font-weight: 600; color: var(--primary); }
+    .kpi-value.green { color: var(--green); }
+    .kpi-value.red { color: var(--red); }
+    .kpi-sub { font-size: 11px; color: #999; margin-top: 4px; }
+    .kpi-bar { margin-top: 8px; height: 4px; background: #e0e0e0; border-radius: 2px; }
+    .kpi-bar-fill { height: 100%; border-radius: 2px; background: var(--green); transition: width 1s ease; }
+
+    .dashboard { display: grid; grid-template-areas: "adherencia top10" "tabla tabla"; grid-template-columns: 2fr 1fr; gap: 20px; }
+    .tile { background: var(--card); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     .adherencia { grid-area: adherencia; }
-    .top10      { grid-area: top10; }
-    .tabla      { grid-area: tabla; }
-    .tile h2 {
-      margin-top: 0; font-size: 1.1em;
-      color: var(--primary-color);
-    }
-    table {
-      width: 100%; border-collapse: collapse;
-      margin-top: 10px; font-size: 14px;
-    }
-    th, td {
-      padding: 8px; border: 1px solid #ccc;
-      text-align: center;
-    }
-    th {
-      background: var(--primary-color);
-      color: #fff;
-    }
-    .badge-nok {
-      background: var(--accent-color);
-      color: #fff; padding: 4px 8px;
-      border-radius: 5px; font-weight: bold;
-      display: inline-block;
-    }
-    .badge-ok {
-      background: var(--secondary-color);
-      color: #fff; padding: 4px 8px;
-      border-radius: 5px; font-weight: bold;
-      display: inline-block;
-    }
-    .controls {
-      margin-top: 10px; text-align: center;
-    }
-    .controls button {
-      background-color: var(--primary-color);
-      color: #fff; border: none;
-      padding: 6px 12px; margin: 0 6px;
-      border-radius: 5px; cursor: pointer;
-    }
-    .controls button:hover {
-      background-color: var(--secondary-color);
-    }
-    /* Búsquedas y filtro */
-    #busquedaNOK, #filtroStatusActual,
-    #busquedaChofer {
-      width: 100%; padding: 8px;
-      margin-bottom: 10px;
-      border: 1px solid #ccc; border-radius: 5px;
-    }
-    /* Resaltado de celdas por debajo del mínimo */
-    .cell-below {
-      background-color: #f8d7da;
-      color: #721c24;
-    }
-    .historico-general {
-      margin-top: 40px;
-    }
+    .top10 { grid-area: top10; }
+    .tabla { grid-area: tabla; }
+    .tile h2 { margin-top: 0; font-size: 1.1em; color: var(--primary); margin-bottom: 14px; }
+
+    /* Charts SVG */
+    .chart-container { width: 100%; overflow: hidden; }
+    svg { width: 100%; display: block; }
+
+    .controls { margin-top: 10px; text-align: center; }
+    .controls button { background: var(--primary); color: #fff; border: none; padding: 6px 12px; margin: 0 6px; border-radius: 5px; cursor: pointer; font-family: var(--font); font-size: 13px; }
+    .controls button:hover { background: var(--green); }
+
+    .controls-bar { display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+    .controls-bar input, .controls-bar select { flex: 1; min-width: 160px; padding: 7px 10px; border: 1px solid #ccc; border-radius: 5px; font-family: var(--font); font-size: 13px; }
+    .btn-export { padding: 7px 14px; border-radius: 5px; background: var(--primary); border: none; color: #fff; font-family: var(--font); font-size: 13px; cursor: pointer; white-space: nowrap; }
+    .btn-export:hover { background: var(--green); }
+
+    .table-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 13px; }
+    th, td { padding: 8px; border: 1px solid #ddd; text-align: center; }
+    th { background: var(--primary); color: #fff; position: sticky; top: 0; z-index: 1; font-size: 12px; }
+    tr:nth-child(even) td { background: #f9f9f9; }
+    tr:hover td { background: #eaf4ff; }
+    .cell-below { background-color: #f8d7da !important; color: #721c24; }
+    .badge-nok { background: var(--red); color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+    .badge-ok  { background: var(--green); color: #fff; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+
+    .loading { text-align: center; padding: 40px; color: #999; font-size: 14px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 999; background: var(--primary); color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; transform: translateY(80px); opacity: 0; transition: all .3s; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .historico-general { margin-top: 30px; }
+    @media(max-width:900px){ .dashboard{grid-template-areas:"adherencia" "top10" "tabla"; grid-template-columns:1fr;} .kpi-row{grid-template-columns:repeat(2,1fr);} }
   </style>
 </head>
 <body>
 
-  <!-- Botón fijo "Volver al inicio" -->
-  <div class="volver-inicio">
-    <a href="https://fadelt1.github.io/indextotenadm/#"><button>Volver al inicio</button></a>
+<div class="volver">
+  <a href="https://fadelt1.github.io/indextotenadm/#"><button>Volver al inicio</button></a>
+</div>
+
+<h1>Dashboard de RV por Chofer</h1>
+
+<div class="filtro-bar">
+  <label>Año:</label>
+  <select id="filtroAnio"><option value="TODOS">Todos</option></select>
+  <span class="badge-corte" id="corteBadge">Cargando...</span>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi-card">
+    <div class="kpi-label">Choferes totales</div>
+    <div class="kpi-value" id="kpiTotal">—</div>
+    <div class="kpi-sub">en el período</div>
   </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Adherencia global</div>
+    <div class="kpi-value green" id="kpiAdherencia">—</div>
+    <div class="kpi-sub">del período seleccionado</div>
+    <div class="kpi-bar"><div class="kpi-bar-fill" id="kpiBar" style="width:0%"></div></div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">NOK último corte</div>
+    <div class="kpi-value red" id="kpiNOK">—</div>
+    <div class="kpi-sub">choferes bajo el objetivo</div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-label">Objetivo RV</div>
+    <div class="kpi-value">₲ 585.000</div>
+    <div class="kpi-sub">meta mensual por chofer</div>
+  </div>
+</div>
 
-  <h1>Dashboard de RV por Chofer</h1>
-
-  <div class="dashboard">
-    <!-- Adherencia mes a mes -->
-    <div class="tile adherencia">
-      <h2>Adherencia mes a mes</h2>
-      <div id="chartAdherenciaMensual" style="height:300px;"></div>
-      <div class="controls">
-        <button id="btnInvertido">Invertir</button>
-        <button id="btnPolar">Polar</button>
-      </div>
-    </div>
-
-    <!-- Top 10 choferes con más NOK -->
-    <div class="tile top10">
-      <h2>Top 10 choferes con más NOK</h2>
-      <div id="chartTop10NOK" style="height:300px;"></div>
-    </div>
-
-    <!-- Choferes NOK – Último corte cerrado -->
-    <div class="tile tabla">
-      <h2>Choferes NOK – Último corte cerrado</h2>
-
+<div class="dashboard">
+  <div class="tile adherencia">
+    <h2>Adherencia mes a mes</h2>
+    <div class="chart-container" id="chartAdherencia"></div>
+  </div>
+  <div class="tile top10">
+    <h2>Top 10 choferes con más NOK</h2>
+    <div class="chart-container" id="chartTop10"></div>
+  </div>
+  <div class="tile tabla">
+    <h2>Choferes NOK – Último corte cerrado</h2>
+    <div class="controls-bar">
       <input type="text" id="busquedaNOK" placeholder="Buscar chofer..." />
       <select id="filtroStatusActual">
-        <option value="TODOS">Filtrar por status actual: TODOS</option>
+        <option value="TODOS">Todos los status</option>
         <option value="OK">OK</option>
         <option value="NOK">NOK</option>
       </select>
-
-      <table id="tablaRVNOK"></table>
+      <button class="btn-export" id="exportNOK">↓ CSV</button>
+    </div>
+    <div class="table-wrap">
+      <div class="loading" id="loadingNOK">Cargando datos...</div>
+      <table id="tablaRVNOK" style="display:none;"></table>
     </div>
   </div>
+</div>
 
-  <!-- Histórico General por Chofer -->
-  <div class="historico-general">
-    <div class="tile">
-      <h2>Histórico General por Chofer</h2>
+<div class="historico-general">
+  <div class="tile">
+    <h2>Histórico General por Chofer</h2>
+    <div class="controls-bar">
       <input type="text" id="busquedaChofer" placeholder="Buscar chofer..." />
-      <table id="tablaHistoricoGeneral"></table>
+      <button class="btn-export" id="exportHistorico">↓ CSV</button>
+    </div>
+    <div class="table-wrap">
+      <div class="loading" id="loadingHist">Cargando datos...</div>
+      <table id="tablaHistoricoGeneral" style="display:none;"></table>
     </div>
   </div>
+</div>
 
-  <script>
-    const targetRV = 585000;
-    const meses = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO",
-                   "JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+<div class="toast" id="toast"></div>
 
-    function obtenerUltimoCorte() {
-      const hoy = new Date(), d = hoy.getDate(),
-            mi = hoy.getMonth(), y = hoy.getFullYear();
-      if (d >= 16) return {nombre: meses[mi], anio: y};
-      const pm = (mi-1+12)%12, py = mi===0? y-1 : y;
-      return {nombre: meses[pm], anio: py};
+<script>
+var TARGET_RV = 585000;
+var MESES = ["ENERO","FEBRERO","MARZO","ABRIL","MAYO","JUNIO","JULIO","AGOSTO","SEPTIEMBRE","OCTUBRE","NOVIEMBRE","DICIEMBRE"];
+var historicoGlobal = [];
+var actualGlobal = [];
+
+// ── Utilidades ──────────────────────────────────────────────────────
+function obtenerUltimoCorte() {
+  var hoy = new Date(), d = hoy.getDate(), mi = hoy.getMonth(), y = hoy.getFullYear();
+  if (d >= 16) return { nombre: MESES[mi], anio: y };
+  var pm = (mi - 1 + 12) % 12, py = mi === 0 ? y - 1 : y;
+  return { nombre: MESES[pm], anio: py };
+}
+
+function normalizarFirebase(json) {
+  if (Array.isArray(json)) return json.filter(function(r){ return r && typeof r === 'object'; });
+  if (json && typeof json === 'object') return Object.values(json).filter(function(r){ return r && typeof r === 'object'; });
+  return [];
+}
+
+async function fetchData(url) {
+  var res = await fetch(url);
+  var json = await res.json();
+  return normalizarFirebase(json);
+}
+
+function getStatus(r) {
+  return ((r['STATUS RV '] || r['STATUS RV'] || '')).toString().toUpperCase().trim();
+}
+
+function filtrarAnio(data, anio) {
+  if (anio === 'TODOS') return data;
+  return data.filter(function(r){ return String(r['AÑO'] || '').trim() === String(anio); });
+}
+
+function showToast(msg) {
+  var t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+function exportCSV(tableId, filename) {
+  var table = document.getElementById(tableId);
+  if (!table) return;
+  var csv = Array.from(table.querySelectorAll('tr')).map(function(r){
+    return Array.from(r.querySelectorAll('th,td')).map(function(c){
+      return '"' + c.innerText.replace(/"/g,'""') + '"';
+    }).join(',');
+  }).join('\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent('\uFEFF' + csv);
+  a.download = filename; a.click();
+  showToast('CSV exportado ✓');
+}
+
+function filterTablaNOK() {
+  var nameF = document.getElementById('busquedaNOK').value.toLowerCase();
+  var statusF = document.getElementById('filtroStatusActual').value;
+  document.querySelectorAll('#tablaRVNOK tr').forEach(function(row, i){
+    if (i === 0) return;
+    var name   = row.cells[0] ? row.cells[0].innerText.toLowerCase() : '';
+    var status = row.cells[5] ? row.cells[5].innerText : '';
+    row.style.display = name.includes(nameF) && (statusF === 'TODOS' || status.includes(statusF)) ? '' : 'none';
+  });
+}
+
+// ── Gráficos SVG puros (sin dependencias) ───────────────────────────
+
+function drawBarChart(containerId, labels, values, colors, maxVal, labelSuffix) {
+  labelSuffix = labelSuffix || '';
+  var container = document.getElementById(containerId);
+  container.innerHTML = '';
+  var W = container.clientWidth || 500;
+  var padL = 90, padR = 40, padT = 30, padB = 60;
+  var chartW = W - padL - padR;
+  var H = 300;
+  var chartH = H - padT - padB;
+  var n = labels.length;
+  var barW = Math.max(10, (chartW / n) * 0.65);
+  var gap  = chartW / n;
+  var max  = maxVal || Math.max.apply(null, values) * 1.15 || 1;
+
+  var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="font-family:Montserrat,sans-serif">';
+
+  // Grid lines
+  var gridCount = 5;
+  for (var g = 0; g <= gridCount; g++) {
+    var gy = padT + chartH - (g / gridCount) * chartH;
+    var gv = Math.round((g / gridCount) * max);
+    svg += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy + '" stroke="#e0e0e0" stroke-width="1"/>';
+    svg += '<text x="' + (padL - 6) + '" y="' + (gy + 4) + '" text-anchor="end" font-size="10" fill="#999">' + gv + labelSuffix + '</text>';
+  }
+
+  // Barras
+  for (var i = 0; i < n; i++) {
+    var bh = (values[i] / max) * chartH;
+    var bx = padL + i * gap + (gap - barW) / 2;
+    var by = padT + chartH - bh;
+    var color = Array.isArray(colors) ? (colors[i] || '#34d399') : colors;
+    svg += '<rect x="' + bx + '" y="' + by + '" width="' + barW + '" height="' + bh + '" rx="3" fill="' + color + '"/>';
+    // Valor encima
+    svg += '<text x="' + (bx + barW/2) + '" y="' + (by - 5) + '" text-anchor="middle" font-size="11" font-weight="600" fill="#333">' + values[i] + labelSuffix + '</text>';
+    // Label abajo (rotado si son muchos)
+    var lx = bx + barW / 2;
+    var ly = padT + chartH + 16;
+    if (n > 6) {
+      svg += '<text transform="rotate(-40,' + lx + ',' + ly + ')" x="' + lx + '" y="' + ly + '" text-anchor="end" font-size="10" fill="#555">' + labels[i] + '</text>';
+    } else {
+      svg += '<text x="' + lx + '" y="' + ly + '" text-anchor="middle" font-size="10" fill="#555">' + labels[i] + '</text>';
     }
+  }
 
-    async function fetchData(url) {
-      const res = await fetch(url);
-      return Object.values(await res.json());
+  svg += '</svg>';
+  container.innerHTML = svg;
+}
+
+function drawHBarChart(containerId, labels, values) {
+  var container = document.getElementById(containerId);
+  container.innerHTML = '';
+  var W = container.clientWidth || 400;
+  var rowH = 32, padL = 140, padR = 50, padT = 10, padB = 10;
+  var H = padT + padB + labels.length * rowH;
+  var chartW = W - padL - padR;
+  var max = Math.max.apply(null, values) || 1;
+
+  var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="font-family:Montserrat,sans-serif">';
+
+  for (var i = 0; i < labels.length; i++) {
+    var y = padT + i * rowH;
+    var bw = (values[i] / max) * chartW;
+    var shade = Math.round(176 + (i / labels.length) * 50);
+    var color = 'rgb(' + shade + ',28,28)';
+    svg += '<text x="' + (padL - 6) + '" y="' + (y + rowH/2 + 4) + '" text-anchor="end" font-size="11" fill="#333">' + labels[i] + '</text>';
+    svg += '<rect x="' + padL + '" y="' + (y + 4) + '" width="' + bw + '" height="' + (rowH - 10) + '" rx="3" fill="' + color + '"/>';
+    svg += '<text x="' + (padL + bw + 5) + '" y="' + (y + rowH/2 + 4) + '" font-size="11" font-weight="600" fill="#333">' + values[i] + '</text>';
+  }
+
+  svg += '</svg>';
+  container.innerHTML = svg;
+}
+
+// ── Render principal ─────────────────────────────────────────────────
+function renderDashboard(anio) {
+  var historico = filtrarAnio(historicoGlobal, anio);
+  var corte = obtenerUltimoCorte();
+
+  // KPI: choferes únicos
+  var chofersMap = {};
+  historico.forEach(function(r){ if(r['CHOFER']) chofersMap[r['CHOFER']] = 1; });
+  document.getElementById('kpiTotal').textContent = Object.keys(chofersMap).length;
+
+  // KPI: adherencia
+  var okCount = 0;
+  historico.forEach(function(r){ if(getStatus(r) === 'OK') okCount++; });
+  var adh = historico.length ? ((okCount / historico.length) * 100).toFixed(1) : '0.0';
+  document.getElementById('kpiAdherencia').textContent = adh + '%';
+  document.getElementById('kpiBar').style.width = '0%';
+  setTimeout(function(){ document.getElementById('kpiBar').style.width = adh + '%'; }, 100);
+
+  // KPI: NOK último corte
+  var nokCierre = historico.filter(function(r){
+    return (r['PERIODO']||'').toUpperCase().trim() === corte.nombre
+        && String(r['AÑO']||'').trim() === String(corte.anio)
+        && getStatus(r) !== 'OK';
+  });
+  var agg1 = {};
+  nokCierre.forEach(function(r){
+    var c = r['CHOFER']||'SIN NOMBRE', v = Number(r['TT RV'])||0, o = r['OBSERVACION']||'';
+    if (!agg1[c]) agg1[c] = { rvC:0, obs:o };
+    agg1[c].rvC += v;
+  });
+  document.getElementById('kpiNOK').textContent = Object.keys(agg1).length;
+
+  // RV actual
+  var agg2 = {};
+  actualGlobal.forEach(function(r){
+    var c = r['MOTORISTA 1'], v = parseFloat(r['RV GENERAL'])||0;
+    if (c) agg2[c] = (agg2[c]||0) + v;
+  });
+
+  // ── Tabla NOK ──
+  var th = '<tr><th>Chofer</th><th>RV Corte Cerrado</th><th>Diferencia</th><th>Observación</th><th>RV Actual</th><th>Status Actual</th><th>Estado</th></tr>';
+  var listaNOK = Object.keys(agg1);
+  if (listaNOK.length === 0) {
+    th += '<tr><td colspan="7">No hay choferes NOK en el corte ' + corte.nombre + ' ' + corte.anio + '</td></tr>';
+  } else {
+    listaNOK.forEach(function(c){
+      var rvC = agg1[c].rvC, obs = agg1[c].obs;
+      var diff = TARGET_RV - rvC, rvA = agg2[c]||0;
+      var st = rvA >= TARGET_RV ? 'OK' : 'NOK';
+      var badge = st==='OK' ? '<span class="badge-ok">OK</span>' : '<span class="badge-nok">NOK</span>';
+      th += '<tr><td>' + c + '</td><td>₲ ' + rvC.toLocaleString() + '</td><td>₲ ' + diff.toLocaleString() + '</td><td>' + (obs||'—') + '</td><td>₲ ' + rvA.toLocaleString() + '</td><td>' + badge + '</td><td><span class="badge-nok">NOK</span></td></tr>';
+    });
+  }
+  var tablaNOK = document.getElementById('tablaRVNOK');
+  tablaNOK.innerHTML = th;
+  document.getElementById('loadingNOK').style.display = 'none';
+  tablaNOK.style.display = '';
+
+  // ── Gráfico: Adherencia mes a mes ──
+  var resu = {}, totals = { ok:0, n:0 };
+  historico.forEach(function(r){
+    var m = (r['PERIODO']||'').toUpperCase().trim();
+    var s = getStatus(r);
+    if (!m) return;
+    if (!resu[m]) resu[m] = { t:0, ok:0 };
+    resu[m].t++; totals.n++;
+    if (s==='OK') { resu[m].ok++; totals.ok++; }
+  });
+  var adhCats=[], adhVals=[], adhColors=[];
+  MESES.forEach(function(m){
+    if (resu[m]) {
+      adhCats.push(m.substring(0,3));
+      var pct = parseFloat(((resu[m].ok/resu[m].t)*100).toFixed(1));
+      adhVals.push(pct);
+      adhColors.push(pct >= 80 ? '#34d399' : pct >= 60 ? '#f59e0b' : '#ff5722');
     }
+  });
+  adhCats.push('ACUM.');
+  var acumPct = totals.n ? parseFloat(((totals.ok/totals.n)*100).toFixed(1)) : 0;
+  adhVals.push(acumPct);
+  adhColors.push('#002060');
+  drawBarChart('chartAdherencia', adhCats, adhVals, adhColors, 100, '%');
 
-    function filterTablaNOK() {
-      const nameF = document.getElementById("busquedaNOK").value.toLowerCase();
-      const statusF = document.getElementById("filtroStatusActual").value;
-      document.querySelectorAll("#tablaRVNOK tr").forEach((row,i)=>{
-        if(i===0) return;
-        const name = row.cells[0].innerText.toLowerCase();
-        const status = row.cells[5].innerText;
-        row.style.display = 
-          name.includes(nameF) && (statusF==="TODOS"|| status===statusF)
-          ? "" : "none";
-      });
-    }
+  // ── Gráfico: Top 10 NOK ──
+  var cuenta = {};
+  historico.forEach(function(r){
+    var c = r['CHOFER'];
+    if (c && getStatus(r) === 'NOK') cuenta[c] = (cuenta[c]||0) + 1;
+  });
+  var top10 = Object.entries(cuenta).sort(function(a,b){ return b[1]-a[1]; }).slice(0,10);
+  drawHBarChart('chartTop10', top10.map(function(e){ return e[0]; }), top10.map(function(e){ return e[1]; }));
 
-    async function cargarDashboard() {
-      const historico = await fetchData("https://historicototen-default-rtdb.firebaseio.com/.json");
-      const actual    = await fetchData("https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json");
-      const corte     = obtenerUltimoCorte().nombre;
+  // ── Histórico General ──
+  var hg = {};
+  historico.forEach(function(r){
+    var c = r['CHOFER'], m = (r['PERIODO']||'').toUpperCase().trim(), v = Number(r['TT RV'])||0;
+    if (!c || MESES.indexOf(m) < 0) return;
+    if (!hg[c]) { hg[c] = {}; MESES.forEach(function(x){ hg[c][x]=0; }); }
+    hg[c][m] += v;
+  });
+  var th2 = '<tr><th>Chofer</th>' + MESES.map(function(m){ return '<th>' + m.substring(0,3) + '</th>'; }).join('') + '<th>ACUMULADO</th></tr>';
+  Object.keys(hg).sort().forEach(function(c){
+    var total = 0;
+    th2 += '<tr><td style="text-align:left">' + c + '</td>';
+    MESES.forEach(function(m){
+      var v = hg[c][m]||0; total += v;
+      var cls = v > 0 && v < TARGET_RV ? 'cell-below' : '';
+      th2 += '<td class="' + cls + '">₲ ' + v.toLocaleString() + '</td>';
+    });
+    th2 += '<td><strong>₲ ' + total.toLocaleString() + '</strong></td></tr>';
+  });
+  var tablaHist = document.getElementById('tablaHistoricoGeneral');
+  tablaHist.innerHTML = th2;
+  document.getElementById('loadingHist').style.display = 'none';
+  tablaHist.style.display = '';
+}
 
-      // 1. Choferes NOK – Último corte cerrado
-      const nokCierre = historico.filter(r=>
-        (r["PERIODO"]||"").toUpperCase().trim()===corte &&
-        (r["STATUS RV "]||"").toUpperCase().trim()!=="OK"
-      );
-      const agg1 = {};
-      nokCierre.forEach(r=>{
-        const c=r["CHOFER"], v=parseFloat(r["TT RV"])||0,
-              o=r["OBSERVACION"]||"";
-        agg1[c] = agg1[c]||{rvC:0, obs:o};
-        agg1[c].rvC += v;
-      });
-      const listaNOK = Object.entries(agg1).map(([c,d])=>({
-        chofer:c, rvCerrado:d.rvC, obs:d.obs
-      }));
+// ── Carga inicial ────────────────────────────────────────────────────
+async function cargarDashboard() {
+  var corte = obtenerUltimoCorte();
+  document.getElementById('corteBadge').textContent = 'Último corte: ' + corte.nombre + ' ' + corte.anio;
 
-      // 2. RV actual por chofer
-      const agg2 = {};
-      actual.forEach(r=>{
-        const c=r["MOTORISTA 1"], v=parseFloat(r["RV GENERAL"])||0;
-        agg2[c] = (agg2[c]||0) + v;
-      });
+  var results = await Promise.all([
+    fetchData('https://historicototen-default-rtdb.firebaseio.com/.json'),
+    fetchData('https://toten-paraguay-5d90f-default-rtdb.firebaseio.com/.json')
+  ]);
+  historicoGlobal = results[0];
+  actualGlobal    = results[1];
 
-      // Construir tabla NOK
-      let th = `<tr>
-        <th>Chofer</th><th>RV Corte Cerrado</th><th>Diferencia</th>
-        <th>Observación</th><th>RV Actual (Corte Abierto)</th>
-        <th>Status Corte Actual</th><th>Estado</th>
-      </tr>`;
-      listaNOK.forEach(r=>{
-        const diff = targetRV - r.rvCerrado;
-        const rvA = agg2[r.chofer]||0;
-        const st  = rvA>=targetRV? "OK":"NOK";
-        const bd  = st==="OK"? `<span class="badge-ok">OK</span>`
-                            : `<span class="badge-nok">NOK</span>`;
-        th += `<tr>
-          <td>${r.chofer}</td>
-          <td>₲ ${r.rvCerrado.toLocaleString()}</td>
-          <td>₲ ${diff.toLocaleString()}</td>
-          <td>${r.obs}</td>
-          <td>₲ ${rvA.toLocaleString()}</td>
-          <td>${bd}</td>
-          <td><span class="badge-nok">NOK</span></td>
-        </tr>`;
-      });
-      document.getElementById("tablaRVNOK").innerHTML = th;
+  // Poblar años
+  var aniosMap = {};
+  historicoGlobal.forEach(function(r){ var a = String(r['AÑO']||'').trim(); if(a) aniosMap[a]=1; });
+  var anios = Object.keys(aniosMap).sort(function(a,b){ return b-a; });
+  var sel = document.getElementById('filtroAnio');
+  anios.forEach(function(a){
+    var opt = document.createElement('option');
+    opt.value = a; opt.textContent = a;
+    sel.appendChild(opt);
+  });
+  var anioCorte = String(corte.anio);
+  if (aniosMap[anioCorte]) sel.value = anioCorte;
 
-      // Eventos de filtro
-      document.getElementById("busquedaNOK")
-        .addEventListener("keyup", filterTablaNOK);
-      document.getElementById("filtroStatusActual")
-        .addEventListener("change", filterTablaNOK);
+  renderDashboard(sel.value);
 
-      // 3. Top 10 NOK
-      const cuenta = {};
-      historico.forEach(r=>{
-        const c=r["CHOFER"];
-        if ((r["STATUS RV "]||"").toUpperCase().trim()==="NOK")
-          cuenta[c] = (cuenta[c]||0)+1;
-      });
-      const top10 = Object.entries(cuenta)
-        .sort((a,b)=>b[1]-a[1]).slice(0,10);
-      Highcharts.chart("chartTop10NOK", {
-        chart:{type:"bar"}, title:{text:""},
-        xAxis:{categories: top10.map(e=>e[0])},
-        yAxis:{min:0,title:{text:"Meses con NOK"}},
-        plotOptions:{bar:{dataLabels:{enabled:true,format:"{y}"}}},
-        series:[{name:"NOK", data: top10.map(e=>e[1]), color:"#b91c1c"}]
-      });
+  sel.addEventListener('change', function(){ renderDashboard(this.value); });
 
-      // 4. Adherencia mes a mes
-      const resu={}, totals={ok:0,n:0};
-      historico.forEach(r=>{
-        const m=(r["PERIODO"]||"").toUpperCase().trim();
-        const s=(r["STATUS RV "]||"").toUpperCase().trim();
-        if(!m) return;
-        resu[m] = resu[m]||{t:0,ok:0};
-        resu[m].t++;
-        if(s==="OK") resu[m].ok++;
-        totals.n++;
-        if(s==="OK") totals.ok++;
-      });
-      const cats=[], data=[];
-      meses.forEach(m=>{
-        if(resu[m]) {
-          cats.push(m);
-          data.push(parseFloat(((resu[m].ok/resu[m].t)*100).toFixed(1)));
-        }
-      });
-      cats.push("ACUMULADO");
-      data.push(parseFloat(((totals.ok/totals.n)*100).toFixed(1)));
+  document.getElementById('busquedaNOK').addEventListener('keyup', filterTablaNOK);
+  document.getElementById('filtroStatusActual').addEventListener('change', filterTablaNOK);
+  document.getElementById('busquedaChofer').addEventListener('keyup', function(e){
+    var f = e.target.value.toLowerCase();
+    document.querySelectorAll('#tablaHistoricoGeneral tr').forEach(function(row,i){
+      if (i===0) return;
+      row.style.display = row.cells[0] && row.cells[0].innerText.toLowerCase().includes(f) ? '' : 'none';
+    });
+  });
+  document.getElementById('exportNOK').addEventListener('click', function(){ exportCSV('tablaRVNOK','choferes_nok.csv'); });
+  document.getElementById('exportHistorico').addEventListener('click', function(){ exportCSV('tablaHistoricoGeneral','historico_choferes.csv'); });
+}
 
-      Highcharts.chart("chartAdherenciaMensual", {
-        chart:{type:"column"}, title:{text:""},
-        xAxis:{categories:cats}, yAxis:{max:100,title:{text:"Adherencia (%)"}},
-        plotOptions:{column:{dataLabels:{enabled:true,format:"{y}%",style:{fontWeight:"bold",color:"#333"}}}},
-        series:[{name:"Adherencia",data: data.map((y,i)=>({
-          y, color: cats[i]==="ACUMULADO"? "#6366f1":"#34d399"
-        }))}]
-      });
-
-      // 5. Histórico General por Chofer
-      const hg = {};
-      historico.forEach(r=>{
-        const c=r["CHOFER"], m=(r["PERIODO"]||"").toUpperCase().trim();
-        const v=parseFloat(r["TT RV"])||0;
-        if(!c) return;
-        hg[c] = hg[c]||Object.fromEntries(meses.map(x=>[x,0]));
-        hg[c][m] = (hg[c][m]||0)+v;
-      });
-      let th2 = `<tr><th>Chofer</th>${meses.map(m=>`<th>${m}</th>`).join("")}<th>ACUMULADO</th></tr>`;
-      Object.entries(hg).forEach(([c,mesesObj])=>{
-        let total=0;
-        th2 += `<tr><td>${c}</td>`;
-        meses.forEach(m=>{
-          const v = mesesObj[m]||0; total+=v;
-          const cls = v<targetRV? "cell-below": "";
-          th2 += `<td class="${cls}">₲ ${v.toLocaleString()}</td>`;
-        });
-        th2 += `<td>₲ ${total.toLocaleString()}</td></tr>`;
-      });
-      document.getElementById("tablaHistoricoGeneral").innerHTML = th2;
-      document.getElementById("busquedaChofer")
-        .addEventListener("keyup", e=>{
-          const f=e.target.value.toLowerCase();
-          document.querySelectorAll("#tablaHistoricoGeneral tr")
-            .forEach((row,i)=> {
-              if(i===0) return;
-              row.style.display = row.cells[0].innerText.toLowerCase().includes(f) ? "" : "none";
-            });
-        });
-    }
-
-    cargarDashboard();
-  </script>
+cargarDashboard().catch(function(err){
+  console.error('Error:', err);
+  document.querySelectorAll('.loading').forEach(function(el){
+    el.textContent = 'Error al cargar datos: ' + err.message;
+    el.style.color = 'red';
+  });
+});
+</script>
 </body>
 </html>
